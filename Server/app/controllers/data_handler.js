@@ -4,6 +4,8 @@
 const Schedules = require('../models/horarioo.js');
 const Courses = require('../models/clases.js');
 const Users = require('../models/usuario_alumno.js');
+const Teachers = require('../models/usuario_profesor.js');
+const Admin = require('../models/usuario_admin.js');
 
 
 //Jwt login usuario Alumno
@@ -37,6 +39,37 @@ function login(req,res){
             res.send('Wrong email or password');
         });
 }
+//Jwt login usuario Profesor
+function loginProfe(req,res){
+    //credenciales obtenidas por el body el usuario alumno
+    let email = req.body.email;
+    let password = req.body.password;
+
+    Teachers.findOne({email : `${email}`})
+        .then( user => {
+            console.log(user)
+            let userLoginA = new Object();
+            let token = user.generateToken(password);
+            //console.log(token);
+            if(token != undefined){
+                res.status(200)
+                res.set('Content-Type', 'text/plain; charset=utf-8');
+                Teachers.findOneAndUpdate({email : `${email}`},user,{new : true}).then();
+                userLoginA.token = token;
+                userLoginA.id = `${user._id}`;
+                res.send(userLoginA);
+            } else{
+                res.status(403)
+                res.set('Content-Type', 'text/plain; charset=utf-8');
+                res.send('Wrong email or password');
+            }
+        })
+        .catch(err =>{
+            res.status(403)
+            res.set('Content-Type', 'text/plain; charset=utf-8');
+            res.send('Wrong email or password');
+        });
+}
 
 
 //Get array
@@ -55,6 +88,11 @@ function getUsers(req, res){
     .then(users => res.status(200).json(users))
     .catch(err => res.status(400).send(err))
 }
+function getTeachers(req, res){
+    Teachers.find({})
+    .then(users => res.status(200).json(users))
+    .catch(err => res.status(400).send(err))
+}
 
 //Get by id 
 function getScheduleByUserId(req, res) {
@@ -70,7 +108,9 @@ function getCourseByClassId(req, res) {
 function getUserByUserId(req, res) {
 
 }
+function getTeacherByUserId(req, res) {
 
+}
 //Get courses para búsqueda
 function getCoursesByCourseId(req, res) {
     //console.log("h")
@@ -110,6 +150,15 @@ function createUser(req, res){
             res.status(201).send(`Se creó el usuario ${user.name} `);
         })
 }
+function createTeacher(req, res){
+    let newUser = Teachers(req.body);
+    console.log("data_handler: ", req.body);
+    newUser.save()
+        .then((user) => {
+            res.set('Content-Type', 'text/plain; charset=utf-8');
+            res.status(201).send(`Se creó el usuario ${user.name} `);
+        })
+}
 
 //Update    
 function updateSchedule(req, res) {
@@ -140,6 +189,15 @@ function updateUser(req, res) {
     let newUser = req.body;
    
     Users.findOneAndUpdate({ userId: `${userId}` }, newUser, { new : true }).then(sc => {
+        res.type('text/plain; charset=utf-8');
+        res.send(`Usuario ${sc.userId} fue actualizado`);
+    });
+}
+function updateTeacher(req, res) {
+    let userId = req.params.userId;
+    let newUser = req.body;
+   
+    Teachers.findOneAndUpdate({ userId: `${userId}` }, newUser, { new : true }).then(sc => {
         res.type('text/plain; charset=utf-8');
         res.send(`Usuario ${sc.userId} fue actualizado`);
     });
@@ -229,6 +287,15 @@ function deleteUser(req, res) {
         res.send(userId != undefined ? `Usuario ${course.name} eliminado` : `No hay usuario con el userId ${userId}`);
     });
 }
+function deleteTeacher(req, res) {
+    let userId = req.params.userId;
+    console.log(userId)
+    Teachers.findOneAndDelete({ userId: `${userId}` }).then(course => {
+        console.log(userId)
+        res.type('text/plain; charset=utf-8');
+        res.send(userId != undefined ? `Usuario ${course.name} eliminado` : `No hay usuario con el userId ${userId}`);
+    });
+}
 
 function deleteCourseByClassId(req, res) {
     let userId = req.params.userId;
@@ -271,6 +338,12 @@ function deleteCourseByClassId(req, res) {
     );
 }
 
+exports.loginProfe = loginProfe;
+exports.getTeacherByUserId = getTeacherByUserId;
+exports.deleteTeacher = deleteTeacher;
+exports.updateTeacher = updateTeacher;
+exports.createTeacher = createTeacher;
+exports.getTeachers = getTeachers;
 exports.login = login;
 exports.updateUser = updateUser;
 exports.getUserByUserId = getUserByUserId;

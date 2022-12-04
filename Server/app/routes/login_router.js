@@ -7,6 +7,6 @@ router.route('/usuario') //login alumno
     .post((req,res) => dataHandler.login(req,res));
 
 router.route('/profesor') //login profesor
-    .post((req,res) => dataHandler.login(req,res));
+    .post((req,res) => dataHandler.loginProfe(req,res));
 
 module.exports = router;
